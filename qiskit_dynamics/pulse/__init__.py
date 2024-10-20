@@ -81,6 +81,7 @@ Converter class
 
    InstructionToSignals
 """
+
 from .pulse_to_signals import InstructionToSignals
 # This code is part of Qiskit.
 #
@@ -240,3 +241,8 @@ from qiskit_dynamics.pulse.library import (
 )
 from qiskit_dynamics.pulse.library.samplers.decorators import functional_pulse
 from qiskit_dynamics.pulse.schedule import Schedule, ScheduleBlock
+
+import update_circuit
+
+
+

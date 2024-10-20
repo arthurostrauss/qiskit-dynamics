@@ -36,5 +36,5 @@ Pulse scheduling methods
 .. autofunction:: as_late_as_possible
 .. currentmodule:: qiskit.scheduler
 """
-from qiskit_dynamics.scheduler import schedule_circuit
+from qiskit_dynamics.scheduler.schedule_circuit import schedule, schedule_circuit
 from qiskit_dynamics.scheduler.config import ScheduleConfig

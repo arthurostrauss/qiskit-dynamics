@@ -241,6 +241,7 @@ from qiskit_dynamics.pulse.library import (
 )
 from qiskit_dynamics.pulse.library.samplers.decorators import functional_pulse
 from qiskit_dynamics.pulse.schedule import Schedule, ScheduleBlock
+from qiskit_dynamics.scheduler.schedule_circuit import schedule
 
 import update_circuit
 

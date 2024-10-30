@@ -595,7 +595,8 @@ class TestSymbolicPulses(QiskitTestCase):
             Gaussian(duration=100, sigma=-1.0, amp=0.5, angle=np.pi * 1.1)
 
         with patch(
-            "qiskit_dynamics.pulse.library.symbolic_pulses.SymbolicPulse.disable_validation", new=True
+            "qiskit_dynamics.pulse.library.symbolic_pulses.SymbolicPulse.disable_validation",
+            new=True,
         ):
             waveform = Gaussian(duration=100, sigma=-1.0, amp=0.5, angle=np.pi * 1.1)
             self.assertLess(waveform.sigma, 0)

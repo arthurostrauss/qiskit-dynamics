@@ -272,4 +272,3 @@ class TestCallable(QiskitTestCase):
 
         self.assertEqual(entry1, entry3)
         self.assertNotEqual(entry1, entry2)
-

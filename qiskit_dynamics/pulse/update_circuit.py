@@ -1,16 +1,28 @@
 """
 Module for updating the QuantumCircuit class to include calibration information.
 """
+
 import typing
 
 from qiskit._accelerate.quantum_circuit import CircuitData
-from qiskit.circuit import QuantumCircuit, CircuitInstruction, Clbit, IfElseOp, WhileLoopOp, SwitchCaseOp, \
-    _classical_resource_map
+from qiskit.circuit import (
+    QuantumCircuit,
+    CircuitInstruction,
+    Clbit,
+    IfElseOp,
+    WhileLoopOp,
+    SwitchCaseOp,
+    _classical_resource_map,
+)
 from qiskit.circuit.parameter import Parameter, ParameterExpression
 from qiskit.circuit.exceptions import CircuitError
 from qiskit.circuit.gate import Gate
 from qiskit.circuit.parameterexpression import ParameterValueType
-from qiskit.circuit.quantumcircuit import _ParameterBindsDict, _ParameterBindsSequence, _OuterCircuitScopeInterface
+from qiskit.circuit.quantumcircuit import (
+    _ParameterBindsDict,
+    _ParameterBindsSequence,
+    _OuterCircuitScopeInterface,
+)
 from qiskit.circuit.quantumregister import Qubit
 from qiskit.circuit.quantumcircuit import QubitSpecifier, ClbitSpecifier
 from qiskit.circuit.instruction import Instruction
@@ -24,7 +36,6 @@ import collections
 from collections import defaultdict
 from typing import Union, Mapping, Iterable, Optional, Sequence, Literal
 import numpy as np
-
 
 
 def op_start_times(self) -> list[int]:
@@ -56,6 +67,7 @@ def calibrations_getter(self) -> dict:
     """
     return dict(self._calibrations)
 
+
 def calibrations_setter(self, calibrations: dict):
     """Set the circuit calibration data from a dictionary of calibration definition.
 
@@ -64,6 +76,7 @@ def calibrations_setter(self, calibrations: dict):
            ``{'gate_name': {(qubits, gate_params): schedule}}``
     """
     self._calibrations = defaultdict(dict, calibrations)
+
 
 def has_calibration_for(self, instruction: Union[CircuitInstruction, tuple]):
     """Return True if the circuit has a calibration defined for the instruction context. In this
@@ -88,12 +101,12 @@ def has_calibration_for(self, instruction: Union[CircuitInstruction, tuple]):
 
 
 def assign_parameters(  # pylint: disable=missing-raises-doc
-        self,
-        parameters: Union[Mapping[Parameter, ParameterValueType], Iterable[ParameterValueType]],
-        inplace: bool = False,
-        *,
-        flat_input: bool = False,
-        strict: bool = True,
+    self,
+    parameters: Union[Mapping[Parameter, ParameterValueType], Iterable[ParameterValueType]],
+    inplace: bool = False,
+    *,
+    flat_input: bool = False,
+    strict: bool = True,
 ) -> Optional["QuantumCircuit"]:
     """Assign parameters to new parameters or values.
 
@@ -238,6 +251,7 @@ def assign_parameters(  # pylint: disable=missing-raises-doc
     )
     return None if inplace else target
 
+
 def add_calibration(
     self,
     gate: Union[Gate, str],
@@ -287,6 +301,7 @@ def add_calibration(
         params = ()
 
     self._calibrations[gate][(tuple(qubits), params)] = schedule
+
 
 def compose(
     self,
@@ -451,9 +466,7 @@ def compose(
     if isinstance(other, QuantumCircuit):
         if not self.clbits and other.clbits:
             if dest._control_flow_scopes:
-                raise CircuitError(
-                    "cannot implicitly add clbits while within a control-flow scope"
-                )
+                raise CircuitError("cannot implicitly add clbits while within a control-flow scope")
             dest.add_bits(other.clbits)
             for reg in other.cregs:
                 dest.add_register(reg)
@@ -582,10 +595,7 @@ def compose(
         def map_vars(op):
             n_op = op
             is_control_flow = isinstance(n_op, ControlFlowOp)
-            if (
-                not is_control_flow
-                and (condition := getattr(n_op, "condition", None)) is not None
-            ):
+            if not is_control_flow and (condition := getattr(n_op, "condition", None)) is not None:
                 n_op = n_op.copy() if n_op is op and copy else n_op
                 n_op.condition = variable_mapper.map_condition(condition)
             elif is_control_flow:
@@ -625,6 +635,7 @@ def compose(
         dest._current_scope().extend(append_existing)
 
     return None if inplace else dest
+
 
 def copy_empty_like(
     self,
@@ -712,6 +723,8 @@ def copy_empty_like(
     if name:
         cpy.name = name
     return cpy
+
+
 if not hasattr(QuantumCircuit, "calibrations"):
     setattr(QuantumCircuit, "_calibrations", defaultdict(dict))
     setattr(QuantumCircuit, "calibrations", property(calibrations_getter, calibrations_setter))

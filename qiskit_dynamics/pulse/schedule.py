@@ -1703,7 +1703,7 @@ def draw(
         If matplotlib family is specified, this will be a ``matplotlib.pyplot.Figure`` data.
     """
     # pylint: disable=cyclic-import
-    from qiskit.visualization import pulse_drawer
+    from qiskit_dynamics.pulse.visualization import draw as pulse_drawer
 
     del show_barrier
     return pulse_drawer(

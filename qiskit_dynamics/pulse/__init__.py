@@ -19,7 +19,50 @@ Pulse (:mod:`qiskit_dynamics.pulse`)
 
 .. currentmodule:: qiskit_dynamics.pulse
 
-This module contains tools to interface :mod:`qiskit.pulse` with Qiskit Dynamics. Qiskit Dynamics
+Qiskit-Pulse is a pulse-level quantum programming kit. This lower level of
+programming offers the user more control than programming with
+:py:class:`~qiskit.circuit.QuantumCircuit`\ s.
+
+Extracting the greatest performance from quantum hardware requires real-time
+pulse-level instructions. Pulse answers that need: it enables the quantum
+physicist *user* to specify the exact time dynamics of an experiment.
+It is especially powerful for error mitigation techniques.
+
+The input is given as arbitrary, time-ordered signals (see: :ref:`Instructions <pulse-insts>`)
+scheduled in parallel over multiple virtual hardware or simulator resources
+(see: :ref:`Channels <pulse-channels>`). The system also allows the user to recover the
+time dynamics of the measured output.
+
+This is sufficient to allow the quantum physicist to explore and correct for
+noise in a quantum system.
+
+.. automodule:: qiskit.pulse.instructions
+.. automodule:: qiskit.pulse.library
+.. automodule:: qiskit.pulse.channels
+.. automodule:: qiskit.pulse.schedule
+.. automodule:: qiskit.pulse.transforms
+.. automodule:: qiskit.pulse.builder
+
+.. currentmodule:: qiskit.pulse
+
+Configuration
+=============
+
+.. autosummary::
+   :toctree: ../stubs/
+
+   InstructionScheduleMap
+
+Exceptions
+==========
+
+.. autoexception:: PulseError
+.. autoexception:: BackendNotSet
+.. autoexception:: NoActiveBuilder
+.. autoexception:: UnassignedDurationError
+.. autoexception:: UnassignedReferenceError
+
+This module also contains tools to interface :mod:`qiskit.pulse` with Qiskit Dynamics. Qiskit Dynamics
 simulates time evolution using the :class:`Signal` class, however :mod:`qiskit.pulse` specifies
 pulse instructions using a :class:`~qiskit.pulse.Schedule` or :class:`~qiskit.pulse.ScheduleBlock`.
 This module contains the required converters to convert from a :mod:`qiskit.pulse` control
@@ -83,68 +126,7 @@ Converter class
 """
 
 from .pulse_to_signals import InstructionToSignals
-# This code is part of Qiskit.
-#
-# (C) Copyright IBM 2017, 2019.
-#
-# This code is licensed under the Apache License, Version 2.0. You may
-# obtain a copy of this license in the LICENSE.txt file in the root directory
-# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
-#
-# Any modifications or derivative works of this code must retain this
-# copyright notice, and modified files need to carry a notice indicating
-# that they have been altered from the originals.
 
-r"""
-===========================
-Pulse (:mod:`qiskit.pulse`)
-===========================
-
-.. currentmodule:: qiskit.pulse
-
-Qiskit-Pulse is a pulse-level quantum programming kit. This lower level of
-programming offers the user more control than programming with
-:py:class:`~qiskit.circuit.QuantumCircuit`\ s.
-
-Extracting the greatest performance from quantum hardware requires real-time
-pulse-level instructions. Pulse answers that need: it enables the quantum
-physicist *user* to specify the exact time dynamics of an experiment.
-It is especially powerful for error mitigation techniques.
-
-The input is given as arbitrary, time-ordered signals (see: :ref:`Instructions <pulse-insts>`)
-scheduled in parallel over multiple virtual hardware or simulator resources
-(see: :ref:`Channels <pulse-channels>`). The system also allows the user to recover the
-time dynamics of the measured output.
-
-This is sufficient to allow the quantum physicist to explore and correct for
-noise in a quantum system.
-
-.. automodule:: qiskit.pulse.instructions
-.. automodule:: qiskit.pulse.library
-.. automodule:: qiskit.pulse.channels
-.. automodule:: qiskit.pulse.schedule
-.. automodule:: qiskit.pulse.transforms
-.. automodule:: qiskit.pulse.builder
-
-.. currentmodule:: qiskit.pulse
-
-Configuration
-=============
-
-.. autosummary::
-   :toctree: ../stubs/
-
-   InstructionScheduleMap
-
-Exceptions
-==========
-
-.. autoexception:: PulseError
-.. autoexception:: BackendNotSet
-.. autoexception:: NoActiveBuilder
-.. autoexception:: UnassignedDurationError
-.. autoexception:: UnassignedReferenceError
-"""
 
 # Builder imports.
 from qiskit_dynamics.pulse.builder import (
@@ -244,6 +226,3 @@ from qiskit_dynamics.pulse.schedule import Schedule, ScheduleBlock
 from qiskit_dynamics.scheduler.schedule_circuit import schedule
 
 import update_circuit
-
-
-

@@ -391,7 +391,8 @@ class TestParameterSetter(ParameterTestBase):
         with self.assertRaises(PulseError):
             test_sched.assign_parameters({sig: -1.0}, inplace=False)
         with patch(
-            "qiskit_dynamics.pulse.library.symbolic_pulses.SymbolicPulse.disable_validation", new=True
+            "qiskit_dynamics.pulse.library.symbolic_pulses.SymbolicPulse.disable_validation",
+            new=True,
         ):
             test_sched = pulse.ScheduleBlock()
             test_sched.append(

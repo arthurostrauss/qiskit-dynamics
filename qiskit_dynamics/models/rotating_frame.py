@@ -102,6 +102,16 @@ class RotatingFrame:
             # diagonalize with eigh, utilizing assumption of anti-hermiticity
             frame_diag, frame_basis = unp.linalg.eigh(1j * frame_operator)
 
+            # Canonicalize eigenvector gauge: force the largest-magnitude
+            # entry of each column to be real-positive.  This makes the
+            # frame basis deterministic across Python processes (eigh's
+            # arbitrary per-column sign otherwise flips on ~1e-12 noise).
+            for col in range(frame_basis.shape[1]):
+                k = int(unp.argmax(unp.abs(frame_basis[:, col])))
+                phase = frame_basis[k, col]
+                if abs(phase) > 0:
+                    frame_basis[:, col] *= unp.conj(phase) / abs(phase)
+
             self._frame_diag = -1j * frame_diag
             self._frame_basis = frame_basis
             self._frame_basis_adjoint = frame_basis.conj().transpose()

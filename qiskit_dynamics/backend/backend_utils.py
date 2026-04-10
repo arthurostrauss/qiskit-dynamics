@@ -72,6 +72,13 @@ def _get_dressed_state_decomposition(
 
         found_positions.append(position)
 
+        # Canonicalize the eigenvector gauge: multiply by exp(-i*arg(v[k]))
+        # so the dominant entry is real-positive.  Without this, eigh's
+        # arbitrary per-column sign makes the dressed-basis transformation
+        # process-dependent (flips on ~1e-12 numerical noise across runs).
+        phase = evec[position]
+        evec = evec * (np.conj(phase) / abs(phase))
+
         dressed_states[:, position] = evec
         dressed_evals[position] = eigval
 

@@ -38,6 +38,24 @@ def _get_dressed_state_decomposition(
     sorts the eigenvectors according to the value of ``np.argmax(np.abs(evec))``. It also
     validates that this is unique for each eigenvector.
 
+    Two gauge-fixing steps are applied to make the dressed-basis decomposition
+    stable and localized:
+
+    1. **Degenerate-block relocalization**: For operators with exactly
+       degenerate eigenvalues (e.g., symmetric multi-qubit systems where
+       ``|0011>`` and ``|1100>`` share an eigenvalue), ``eigh`` returns
+       symmetry-adapted (Bell-like) eigenvectors within the degenerate
+       subspace. A post-processing rotation within each degenerate block
+       maximizes computational-basis overlap, eliminating the gauge artifact
+       that otherwise creates spurious cross-pair mixing in the dressed
+       basis and corrupts per-target fidelity extraction.
+
+    2. **Per-column sign canonicalization**: After sorting, each eigenvector
+       is multiplied by a phase so its dominant entry is real-positive. This
+       removes the arbitrary per-column sign from ``eigh`` that is otherwise
+       stable within a process but flips across processes on ~1e-12 numerical
+       noise.
+
     Args:
         operator: Hermitian operator.
         subsystem_dims: Dimensions of the subsystems composing the system.
@@ -58,6 +76,14 @@ def _get_dressed_state_decomposition(
 
     evals, evecs = np.linalg.eigh(np.array(operator))
 
+    # Step 1: Relocalize degenerate blocks before sorting.
+    # For degenerate eigenvalues, eigh returns symmetry-adapted eigenvectors
+    # (e.g., Bell-like for symmetric multi-qubit systems).  Rotate within
+    # each degenerate subspace to maximize computational-basis overlap, so
+    # that the argmax-based sorting below succeeds and the dressed states
+    # correspond to localized (computational) basis states.
+    evecs = _relocalize_degenerate_blocks(evals, evecs)
+
     dressed_evals = np.zeros_like(evals)
     dressed_states = np.zeros_like(evecs)
 
@@ -72,10 +98,89 @@ def _get_dressed_state_decomposition(
 
         found_positions.append(position)
 
+        # Step 2: Canonicalize the eigenvector gauge: multiply by exp(-i*arg(v[k]))
+        # so the dominant entry is real-positive.  Without this, eigh's
+        # arbitrary per-column sign makes the dressed-basis transformation
+        # process-dependent (flips on ~1e-12 numerical noise across runs).
+        phase = evec[position]
+        evec = evec * (np.conj(phase) / abs(phase))
+
         dressed_states[:, position] = evec
         dressed_evals[position] = eigval
 
     return dressed_evals, dressed_states
+
+
+def _relocalize_degenerate_blocks(
+    evals: np.ndarray, evecs: np.ndarray, deg_tol_factor: float = 1e-10
+) -> np.ndarray:
+    """Rotate eigenvectors within degenerate eigenvalue blocks to maximize
+    computational-basis alignment.
+
+    For a k-fold degenerate block, this finds the k computational basis
+    states with the largest total overlap in the subspace and computes an
+    SVD-based unitary rotation that aligns each dressed state with a single
+    computational state.  This eliminates the gauge ambiguity from
+    ``np.linalg.eigh`` that otherwise returns symmetry-adapted (Bell-like)
+    eigenvectors in systems with exact degeneracies (e.g., symmetric
+    multi-qubit transmon backends where ``|0011>`` and ``|1100>`` are
+    exactly degenerate).
+
+    Non-degenerate blocks are untouched, so this is a no-op for single-qubit
+    or generic multi-qubit systems with distinct eigenvalues.
+
+    Args:
+        evals: Eigenvalues from ``eigh``, sorted ascending, shape ``(dim,)``.
+        evecs: Eigenvectors from ``eigh``, shape ``(dim, dim)``, columns are
+            eigenvectors.
+        deg_tol_factor: Relative tolerance for detecting degeneracy. Two
+            eigenvalues are considered degenerate if their absolute
+            difference is less than ``deg_tol_factor * (max(evals) - min(evals))``.
+
+    Returns:
+        A new array of eigenvectors with degenerate blocks rotated to
+        computational-basis alignment.
+    """
+    dim = len(evals)
+    if dim <= 1:
+        return evecs
+
+    eval_range = evals[-1] - evals[0]
+    tol = deg_tol_factor * eval_range if eval_range > 0 else 1e-12
+
+    evecs = evecs.copy()
+    i = 0
+    while i < dim:
+        # Find contiguous degenerate block [i, j).
+        j = i + 1
+        while j < dim and abs(evals[j] - evals[i]) < tol:
+            j += 1
+
+        if j - i > 1:
+            # Degenerate block of size k > 1.
+            group = slice(i, j)
+            k = j - i
+            V = evecs[:, group]  # shape (dim, k)
+
+            # Identify the k computational basis states with largest total
+            # overlap with this subspace.
+            total_overlap = (np.abs(V) ** 2).sum(axis=1)
+            comp_indices = np.argsort(total_overlap)[-k:]
+
+            # Build the k x k overlap matrix O_ab = <comp_a | dressed_b>
+            # and compute its SVD O = U S Vh.  The optimal unitary rotation
+            # R = Vh^dagger U^dagger gives O R = U S U^dagger, which is
+            # diagonal-dominant, i.e., each rotated dressed state has
+            # maximum overlap with a distinct computational basis state.
+            O = V[comp_indices, :]
+            U_svd, _, Vh = np.linalg.svd(O)
+            R = Vh.conj().T @ U_svd.conj().T
+
+            evecs[:, group] = V @ R
+
+        i = j
+
+    return evecs
 
 
 def _get_lab_frame_static_hamiltonian(model: Union[HamiltonianModel, LindbladModel]) -> np.ndarray:
